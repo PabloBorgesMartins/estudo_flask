@@ -1,1 +1,9 @@
 python -m flask shell
+
+db.drop_all() // limpa todas as tabelas
+
+db.create_all() // Cria todas as tabelas
+
+db.session.commit() // efetivamente subir as alteracoes
+
+exit() // fecha o console
