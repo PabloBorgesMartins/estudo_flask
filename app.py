@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_login import UserMixin, login_user, LoginManager
+from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "minha_key"
@@ -27,6 +27,11 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=True)
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
@@ -37,7 +42,15 @@ def login():
     return jsonify({"message": "Invalid Login"}), 400
 
 
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    logout_user()
+    return jsonify({"message": "Logout successfully"})
+
+
 @app.route("/api/products/add", methods=["POST"])
+@login_required
 def add_product():
     data = request.json
     if "name" in data and "price" in data:
@@ -53,6 +66,7 @@ def add_product():
 
 
 @app.route("/api/products/delete/<int:product_id>", methods=["DELETE"])
+@login_required
 def delete_product(product_id):
     product = Product.query.get(product_id)
     if product:
@@ -78,6 +92,7 @@ def get_product_details(product_id):
 
 
 @app.route("/api/products/update/<int:product_id>", methods=["PUT"])
+@login_required
 def update_product(product_id):
     product = Product.query.get(product_id)
     if not product:
